@@ -1,4 +1,8 @@
-FROM golang:1.24-alpine AS builder
+# Build stage
+FROM golang:alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git
 
 WORKDIR /app
 
@@ -9,19 +13,26 @@ COPY go.mod ./
 COPY . .
 
 # Build the binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o spotmux ./cmd/spotmux/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o spotmux ./cmd/spotmux/main.go
 
 # Final stage
 FROM alpine:latest
 
-WORKDIR /root/
+# Install runtime dependencies and create non-root user
+RUN apk add --no-cache ca-certificates tzdata \
+    && addgroup -S spotmux \
+    && adduser -S spotmux -G spotmux
+
+WORKDIR /home/spotmux
 
 # Copy the binary from the builder
 COPY --from=builder /app/spotmux .
-# Copy default config if it exists
-# COPY config.json .
+RUN chown spotmux:spotmux spotmux
+
+# Use non-root user
+USER spotmux
 
 # Expose the telnet port
 EXPOSE 7300
 
-ENTRYPOINT ["./dxservice"]
+ENTRYPOINT ["./spotmux"]
