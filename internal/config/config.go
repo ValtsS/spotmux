@@ -7,6 +7,9 @@ import (
 
 type Config struct {
 	ServiceCallsign          string   `json:"service_callsign"`
+	OperatorName             string   `json:"operator_name"`
+	OperatorQTH              string   `json:"operator_qth"`
+	OperatorLocation         string   `json:"operator_location"`
 	ListenPort               int      `json:"listen_port"`
 	MaxDownstreamConnections int      `json:"max_downstream_connections"`
 	MaxSpotsPerMinute        int      `json:"max_spots_per_minute"`

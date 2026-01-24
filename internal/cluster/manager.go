@@ -16,15 +16,21 @@ import (
 
 type UpstreamManager struct {
 	callsign string
+	name     string
+	qth      string
+	loc      string
 	clusters []string
 	spots    chan *spot.Spot
 	conns    map[string]net.Conn
 	mu       sync.Mutex
 }
 
-func NewUpstreamManager(callsign string, clusters []string) *UpstreamManager {
+func NewUpstreamManager(callsign, name, qth, loc string, clusters []string) *UpstreamManager {
 	return &UpstreamManager{
 		callsign: callsign,
+		name:     name,
+		qth:      qth,
+		loc:      loc,
 		clusters: clusters,
 		spots:    make(chan *spot.Spot, 100),
 		conns:    make(map[string]net.Conn),
@@ -80,6 +86,16 @@ func (m *UpstreamManager) connectAndRead(addr string) error {
 		lower := strings.ToLower(string(buffer))
 		if strings.Contains(lower, "login:") || strings.Contains(lower, "callsign:") {
 			fmt.Fprintf(conn, "%s\n", m.callsign)
+			// Send profile settings if configured
+			if m.name != "" {
+				fmt.Fprintf(conn, "set/name %s\n", m.name)
+			}
+			if m.qth != "" {
+				fmt.Fprintf(conn, "set/qth %s\n", m.qth)
+			}
+			if m.loc != "" {
+				fmt.Fprintf(conn, "set/location %s\n", m.loc)
+			}
 			break
 		}
 		if len(buffer) > 1024 {
@@ -103,6 +119,12 @@ func (m *UpstreamManager) connectAndRead(addr string) error {
 		s, err := spot.ParseSpot(line, addr)
 		if err == nil {
 			m.spots <- s
+		} else {
+			// Log non-spot messages (e.g., acks, errors, info)
+			trimmed := strings.TrimSpace(line)
+			if trimmed != "" {
+				log.Printf("[%s] %s", addr, trimmed)
+			}
 		}
 	}
 }

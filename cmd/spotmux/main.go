@@ -34,7 +34,7 @@ func main() {
 	metrics.StartPrinter(30 * time.Second)
 
 	// Start Upstream Manager
-	upstream := cluster.NewUpstreamManager(cfg.ServiceCallsign, cfg.UpstreamClusters)
+	upstream := cluster.NewUpstreamManager(cfg.ServiceCallsign, cfg.OperatorName, cfg.OperatorQTH, cfg.OperatorLocation, cfg.UpstreamClusters)
 	upstreamSpots := upstream.Start()
 
 	// Start Telnet Server
