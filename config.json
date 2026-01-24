@@ -1,0 +1,11 @@
+{
+  "service_callsign": "N0CALL",
+  "listen_port": 7300,
+  "max_downstream_connections": 10,
+  "max_spots_per_minute": 5,
+  "spot_cache_size": 200,
+  "duplicate_window_seconds": 5,
+  "upstream_clusters": [
+    "dxspider.co.uk:7300"
+  ]
+}
