@@ -1,13 +1,15 @@
 package spot
 
 import (
+	"fmt"
+	"strconv"
 	"sync"
 	"time"
 )
 
 type Deduplicator struct {
 	window time.Duration
-	// Key: Freq + DXCall + Remarks (simplified)
+	// Key: NormalizedFreq + DXCall
 	lastSeen map[string]time.Time
 	mu       sync.Mutex
 }
@@ -23,10 +25,15 @@ func (d *Deduplicator) IsDuplicate(s *Spot) bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
+	// Normalize Frequency (e.g. 14000.0 vs 14000)
+	normFreq := s.Frequency
+	if f, err := strconv.ParseFloat(s.Frequency, 64); err == nil {
+		normFreq = fmt.Sprintf("%.1f", f)
+	}
+
 	// Create a stable key for comparison
-	// Note: Frequency format might vary slightly (e.g. 14025 vs 14025.0)
-	// For now, we trust the source cluster's normalization or exact match.
-	key := s.Frequency + "|" + s.DXCall + "|" + s.Remarks
+	// Industry standard: Only Frequency and DXCall are used for deduplication
+	key := normFreq + "|" + s.DXCall
 
 	last, exists := d.lastSeen[key]
 	if exists && time.Since(last) < d.window {
@@ -34,11 +41,6 @@ func (d *Deduplicator) IsDuplicate(s *Spot) bool {
 	}
 
 	d.lastSeen[key] = time.Now()
-
-	// Periodic cleanup of very old entries to prevent map growth
-	// (Simple version: once every 1000 calls or something, but for a 10-client service,
-	// even 10,000 keys isn't much memory. Let's keep it simple for now).
-
 	return false
 }
 
