@@ -7,8 +7,10 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
+	"github.com/user/rotator/internal/metrics"
 	"github.com/user/rotator/internal/spot"
 )
 
@@ -41,6 +43,7 @@ func (m *UpstreamManager) maintainConnection(addr string) {
 	for {
 		err := m.connectAndRead(addr)
 		if err != nil {
+			atomic.AddUint64(&metrics.UpstreamErrors, 1)
 			log.Printf("Cluster %s connection error: %v. Retrying in %v...", addr, err, backoff)
 		}
 		// Connection lost or failed, remove from map
@@ -66,15 +69,22 @@ func (m *UpstreamManager) connectAndRead(addr string) error {
 	reader := bufio.NewReader(conn)
 
 	// Handshake: Look for "login:" or "callsign:"
+	// We read byte by byte because some clusters don't send a newline after the prompt.
+	buffer := make([]byte, 0, 1024)
 	for {
-		line, err := reader.ReadString('\n')
+		b, err := reader.ReadByte()
 		if err != nil {
 			return err
 		}
-		lower := strings.ToLower(line)
+		buffer = append(buffer, b)
+		lower := strings.ToLower(string(buffer))
 		if strings.Contains(lower, "login:") || strings.Contains(lower, "callsign:") {
 			fmt.Fprintf(conn, "%s\n", m.callsign)
 			break
+		}
+		if len(buffer) > 1024 {
+			// Prevent buffer from growing indefinitely if no prompt is found
+			buffer = buffer[512:]
 		}
 	}
 
