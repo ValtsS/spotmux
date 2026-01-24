@@ -55,7 +55,8 @@ func main() {
 	go func() {
 		for s := range outboundSpots {
 			atomic.AddUint64(&metrics.SpotsSent, 1)
-			upstream.BroadcastSpot(s)
+			server.HandleInboundSpot(s) // Echo locally
+			upstream.BroadcastSpot(s)   // Send upstream
 		}
 	}()
 

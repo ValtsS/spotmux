@@ -94,7 +94,7 @@ func (s *Server) handleClient(c *Client) {
 		c.conn.Close()
 	}()
 
-	fmt.Fprintln(c.conn, "Welcome to the DX Aggregator Service")
+	fmt.Fprintf(c.conn, "Welcome to SpotMux DX Aggregator\nDXSpider V1.55 build 0.000 (standard) %s\n", s.serviceCall)
 	fmt.Fprint(c.conn, "login: ")
 
 	scanner := bufio.NewScanner(c.conn)
@@ -112,10 +112,12 @@ func (s *Server) handleClient(c *Client) {
 			for _, sp := range s.cache.GetAll() {
 				fmt.Fprintln(c.conn, sp.String())
 			}
+			fmt.Fprintf(c.conn, "de %s > ", s.serviceCall)
 			continue
 		}
 
 		s.processCommand(c, line)
+		fmt.Fprintf(c.conn, "de %s > ", s.serviceCall)
 	}
 }
 
@@ -126,10 +128,6 @@ func (s *Server) processCommand(c *Client, line string) {
 
 	switch {
 	case cmd == "dx":
-		if c.callsign != s.serviceCall {
-			fmt.Fprintln(c.conn, "Permission denied. Only authorized service callsign can spot.")
-			return
-		}
 		// dx frequency callsign remarks
 		if len(parts) < 3 {
 			fmt.Fprintln(c.conn, "Usage: DX frequency callsign [remarks]")
