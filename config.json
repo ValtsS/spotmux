@@ -10,11 +10,6 @@
   "duplicate_window_seconds": 5,
   "upstream_clusters": [
     "dxspider.co.uk:7300",
-    "ve7cc.net:23",
-    "hamqth.com:7300",
-    "gb7djk.dxcluster.net:7300",
-    "db0erf.de:7300",
-    "cluster.iz3mez.it:8000",
-    "mayodx.ath.cx:7300"
+    "ve7cc.net:23"
   ]
 }

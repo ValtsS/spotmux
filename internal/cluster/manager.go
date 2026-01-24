@@ -50,18 +50,30 @@ func (m *UpstreamManager) maintainConnection(addr string) {
 		err := m.connectAndRead(addr)
 		if err != nil {
 			atomic.AddUint64(&metrics.UpstreamErrors, 1)
-			log.Printf("Cluster %s connection error: %v. Retrying in %v...", addr, err, backoff)
+
+			// Detect "Already Connected" conflict and use long backoff
+			if strings.Contains(strings.ToLower(err.Error()), "already connected") ||
+				strings.Contains(strings.ToLower(err.Error()), "already logged in") {
+				log.Printf("Cluster %s: Conflict detected. Waiting 1 hour...", addr)
+				backoff = 1 * time.Hour
+			} else {
+				log.Printf("Cluster %s connection error: %v. Retrying in %v...", addr, err, backoff)
+				backoff *= 2
+				if backoff > 5*time.Minute {
+					backoff = 5 * time.Minute
+				}
+			}
+		} else {
+			// Successful connection closed without error (unlikely), reset backoff
+			backoff = time.Second
 		}
+
 		// Connection lost or failed, remove from map
 		m.mu.Lock()
 		delete(m.conns, addr)
 		m.mu.Unlock()
 
 		time.Sleep(backoff)
-		backoff *= 2
-		if backoff > 5*time.Minute {
-			backoff = 5 * time.Minute
-		}
 	}
 }
 
@@ -137,11 +149,17 @@ func (m *UpstreamManager) connectAndRead(addr string) error {
 		if err == nil {
 			m.spots <- s
 		} else {
-			// Log non-spot messages (e.g., acks, errors, info)
 			trimmed := strings.TrimSpace(line)
-			if trimmed != "" {
-				log.Printf("[%s] %s", addr, trimmed)
+			if trimmed == "" {
+				continue
 			}
+			lower := strings.ToLower(trimmed)
+			// Check for conflict messages
+			if strings.Contains(lower, "already connected") || strings.Contains(lower, "already logged in") {
+				return fmt.Errorf("duplicate login: %s", trimmed)
+			}
+			// Log other non-spot messages
+			log.Printf("[%s] %s", addr, trimmed)
 		}
 	}
 }
