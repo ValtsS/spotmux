@@ -1,6 +1,12 @@
 # SpotMux Docker Guide
 
-This guide explains how to build and run SpotMux using Docker.
+SpotMux is a lightweight DX (Distance X) Spot Aggregator and Telnet Server for amateur radio. It connects to multiple upstream DX clusters, aggregates their spot feeds, removes duplicates, and serves the unified stream to downstream clients. 
+
+Key features include:
+- **Upstream Aggregation**: Connects to multiple DX clusters simultaneously.
+- **Deduplication & Caching**: Filters out redundant spots and keeps a recent cache for new connections.
+- **Telnet Compatibility**: Provides a standard telnet interface for loggers and other DX clients.
+- **Microservice Ready**: Designed to run efficiently in Docker as a non-privileged service.
 
 ## Building the Image
 
