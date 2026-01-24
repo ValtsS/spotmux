@@ -94,7 +94,24 @@ func (m *UpstreamManager) connectAndRead(addr string) error {
 				fmt.Fprintf(conn, "set/qth %s\n", m.qth)
 			}
 			if m.loc != "" {
-				fmt.Fprintf(conn, "set/location %s\n", m.loc)
+				// Detection logic: Grid square is usually 4 or 6 chars, starts with 2 letters, then 2 digits, then optional 2 letters
+				isGrid := false
+				if len(m.loc) >= 4 && len(m.loc) <= 6 {
+					isGrid = true
+					for i, c := range m.loc {
+						if (i < 2 && !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) ||
+							(i >= 2 && i < 4 && !(c >= '0' && c <= '9')) {
+							isGrid = false
+							break
+						}
+					}
+				}
+
+				if isGrid {
+					fmt.Fprintf(conn, "set/qra %s\n", m.loc)
+				} else {
+					fmt.Fprintf(conn, "set/location %s\n", m.loc)
+				}
 			}
 			break
 		}
