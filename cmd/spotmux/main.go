@@ -9,11 +9,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/user/rotator/internal/cluster"
-	"github.com/user/rotator/internal/config"
-	"github.com/user/rotator/internal/metrics"
-	"github.com/user/rotator/internal/spot"
-	"github.com/user/rotator/internal/telnet"
+	"github.com/valtss/spotmux/internal/cluster"
+	"github.com/valtss/spotmux/internal/config"
+	"github.com/valtss/spotmux/internal/metrics"
+	"github.com/valtss/spotmux/internal/spot"
+	"github.com/valtss/spotmux/internal/telnet"
 )
 
 func main() {

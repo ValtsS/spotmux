@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/user/rotator/internal/spot"
+	"github.com/valtss/spotmux/internal/spot"
 )
 
 type Client struct {

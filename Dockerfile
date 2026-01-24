@@ -9,7 +9,7 @@ COPY go.mod ./
 COPY . .
 
 # Build the binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o dxservice ./cmd/dxservice/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o spotmux ./cmd/spotmux/main.go
 
 # Final stage
 FROM alpine:latest
@@ -17,7 +17,7 @@ FROM alpine:latest
 WORKDIR /root/
 
 # Copy the binary from the builder
-COPY --from=builder /app/dxservice .
+COPY --from=builder /app/spotmux .
 # Copy default config if it exists
 # COPY config.json .
 

@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/user/rotator/internal/metrics"
-	"github.com/user/rotator/internal/spot"
+	"github.com/valtss/spotmux/internal/metrics"
+	"github.com/valtss/spotmux/internal/spot"
 )
 
 type UpstreamManager struct {
