@@ -37,6 +37,9 @@ func main() {
 	upstream := cluster.NewUpstreamManager(cfg.ServiceCallsign, cfg.OperatorName, cfg.OperatorQTH, cfg.OperatorLocation, cfg.UpstreamClusters)
 	upstreamSpots := upstream.Start()
 
+	// Initialize Prefix Filter
+	filter := spot.NewPrefixFilter(cfg.IgnoredPrefixes)
+
 	// Start Telnet Server
 	server := telnet.NewServer(cfg.ListenPort, cfg.MaxDownstreamConnections, cfg.ServiceCallsign, cache, dedup, cfg.MaxSpotsPerMinute)
 	outboundSpots, err := server.Start()
@@ -47,6 +50,9 @@ func main() {
 	// Glue code
 	go func() {
 		for s := range upstreamSpots {
+			if s.ShouldIgnore(filter) {
+				continue
+			}
 			atomic.AddUint64(&metrics.SpotsReceived, 1)
 			server.HandleInboundSpot(s)
 		}

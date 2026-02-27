@@ -11,5 +11,21 @@
   "upstream_clusters": [
     "dxspider.co.uk:7300",
     "ve7cc.net:23"
+  ],
+  "ignored_prefixes": [
+    "R",
+    "UA",
+    "UB",
+    "UC",
+    "UD",
+    "UE",
+    "UF",
+    "UG",
+    "UH",
+    "UI",
+    "EU",
+    "EW",
+    "UA2",
+    "RA2"
   ]
 }

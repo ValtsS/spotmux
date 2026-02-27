@@ -23,6 +23,11 @@ func (s *Spot) String() string {
 		s.Spotter+":", s.Frequency, s.DXCall, s.Remarks, s.Time)
 }
 
+// ShouldIgnore returns true if the spot's DX callsign matches any of the ignored prefixes
+func (s *Spot) ShouldIgnore(filter *PrefixFilter) bool {
+	return filter.Matches(s.DXCall)
+}
+
 // ParseSpot takes a raw line from a DX cluster and attempts to parse it.
 // Expected format is roughly: DX de K1ABC:     14025.0  KH6J         CW 599                 1234Z
 func ParseSpot(line string, source string) (*Spot, error) {

@@ -16,6 +16,7 @@ type Config struct {
 	SpotCacheSize            int      `json:"spot_cache_size"`
 	DuplicateWindowSeconds   int      `json:"duplicate_window_seconds"`
 	UpstreamClusters         []string `json:"upstream_clusters"`
+	IgnoredPrefixes          []string `json:"ignored_prefixes"`
 }
 
 func LoadConfig(path string) (*Config, error) {
@@ -43,6 +44,13 @@ func LoadConfig(path string) (*Config, error) {
 	}
 	if cfg.MaxDownstreamConnections == 0 {
 		cfg.MaxDownstreamConnections = 10
+	}
+	if len(cfg.IgnoredPrefixes) == 0 {
+		cfg.IgnoredPrefixes = []string{
+			"R", "UA", "UB", "UC", "UD", "UE", "UF", "UG", "UH", "UI",
+			"EU", "EW",
+			"UA2", "RA2",
+		}
 	}
 
 	return &cfg, nil
