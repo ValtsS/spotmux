@@ -107,6 +107,9 @@ func (s *Server) handleClient(c *Client) {
 		if c.callsign == "" {
 			c.callsign = strings.ToUpper(line)
 			fmt.Fprintf(c.conn, "Hello %s. Type HELP for commands.\n", c.callsign)
+			// Post-login cluster-type identification for clients (e.g. QLog)
+			// that sniff for "dxspider" after login to enable spotting.
+			fmt.Fprintf(c.conn, "Running DXSpider V1.55 build 0.000 (SpotMux) %s\n", s.serviceCall)
 
 			// Send cache
 			for _, sp := range s.cache.GetAll() {
@@ -182,7 +185,10 @@ func (s *Server) broadcastLoop() {
 		s.mu.Lock()
 		for _, client := range s.clients {
 			if client.callsign != "" && client.spotsOn {
-				fmt.Fprintln(client.conn, line)
+				// Leading CRLF ensures the spot starts on a fresh line even
+				// when the previous "de <CALL> > " prompt had no newline,
+				// which line-oriented clients (e.g. QLog) require.
+				fmt.Fprintln(client.conn, "\r\n"+line)
 			}
 		}
 		s.mu.Unlock()
